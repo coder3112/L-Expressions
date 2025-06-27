@@ -21,4 +21,4 @@ A lexpr may be transformed via the following rules:
 Example: The transformation of $S(Z)(A)(0)$ results in the number 1:\
 $S(Z)(A)(0) \rightarrow A(Z(A)(0)) \rightarrow A(0) \rightarrow 1$
 
-Note: For this exercise, Project Euler seems to recognize $0 in \mathbb{N}$.
+Note: For this exercise, Project Euler seems to recognize $0 \in \mathbb{N}$.
