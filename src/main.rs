@@ -1,51 +1,44 @@
-use std::num::NonZeroU64;
-
 fn main() {
-    let lexpr1 = LExpr::A(Box::new(LExpr::Nat(3)));
-    let lexpr2 = LExpr::Nat(0);
-    let mut lexpr = LExpr::Z(Box::new(lexpr2), Box::new(lexpr1));
-    loop {
-        let lexpr_old = lexpr.clone();
-        lexpr.reduce().unwrap();
-        if lexpr_old == lexpr {
-            break;
-        }
-    }
-    println!("{:?}", lexpr);
+    // let mut expr = LExpr::A(Some(Box::new(LExpr::Z(Some((
+    //     Box::new(LExpr::A(None)),
+    //     Box::new(LExpr::Nat(0)),
+    // ))))));
+    let expr1 = LExpr::A(Some(Box::new(LExpr::Nat(0))));
+    let expr2 = LExpr::Z(Some((Box::new(expr1.clone()), Box::new(LExpr::Nat(2)))));
+    let expr = LExpr::Z(Some((Box::new(LExpr::A(None)), Box::new(LExpr::Nat(0)))));
+    let expr = LExpr::A(Some(Box::new(expr)));
+    let mut expr = LExpr::Z(Some((Box::new(expr1), Box::new(expr2))));
+    println!("{:?}", expr);
 }
 
-type Nat = u64;
-
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 enum LExpr {
-    Nat(Nat),
-    A(Box<LExpr>),
-    Z(Box<LExpr>, Box<LExpr>),
-    S(Box<LExpr>, Box<LExpr>, Box<LExpr>),
+    Nat(u64),
+    A(Option<Box<LExpr>>),
+    Z(Option<(Box<LExpr>, Box<LExpr>)>),
+    S(Option<(Box<LExpr>, Box<LExpr>, Box<LExpr>)>),
 }
 
 impl LExpr {
-    fn reduce(&mut self) -> Result<(), ReduceError> {
+    pub fn reduce(&mut self) {
         match self {
-            LExpr::Nat(non_zero) => Ok(()),
-            //TODO: This cannot yet do stuff like A(Z(A)(0)) since A does not support it directly.
-            LExpr::A(expr) => match &**expr {
-                LExpr::Nat(nat) => {
-                    *self = LExpr::Nat(*nat + 1);
-                    Ok(())
-                }
-                _ => self.reduce(),
+            LExpr::Nat(_) => (),
+            LExpr::A(expr) => match expr {
+                None => (),
+                Some(expr) => match &**expr {
+                    LExpr::Nat(n) => *self = LExpr::Nat(n + 1),
+                    expr => {
+                        let mut expr = expr.clone();
+                        expr.reduce();
+                        *self = LExpr::A(Some(Box::new(expr)));
+                    }
+                },
             },
-            LExpr::Z(_lexpr1, lexpr2) => {
-                *self = *lexpr2.clone();
-                Ok(())
-            }
-            LExpr::S(lexpr, lexpr1, lexpr2) => todo!(),
+            LExpr::Z(expr) => match expr {
+                Some((_u, v)) => *self = *v.clone(),
+                None => (),
+            },
+            LExpr::S(_) => todo!(),
         }
     }
-}
-
-#[derive(Debug)]
-enum ReduceError {
-    ANotNat,
 }
