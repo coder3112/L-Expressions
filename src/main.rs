@@ -1,14 +1,19 @@
 fn main() {
-    // let mut expr = LExpr::A(Some(Box::new(LExpr::Z(Some((
-    //     Box::new(LExpr::A(None)),
-    //     Box::new(LExpr::Nat(0)),
-    // ))))));
-    let expr1 = LExpr::A(Some(Box::new(LExpr::Nat(0))));
-    let expr2 = LExpr::Z(Some((Box::new(expr1.clone()), Box::new(LExpr::Nat(2)))));
-    let expr = LExpr::Z(Some((Box::new(LExpr::A(None)), Box::new(LExpr::Nat(0)))));
-    let expr = LExpr::A(Some(Box::new(expr)));
-    let mut expr = LExpr::Z(Some((Box::new(expr1), Box::new(expr2))));
-    println!("{:?}", expr);
+    let mut expr1 = LExpr::A(Some(Box::new(LExpr::Z(Some((
+        Box::new(LExpr::A(None)),
+        Box::new(LExpr::Nat(0)),
+    ))))));
+    let mut expr2 = LExpr::S(Some((
+        Box::new(LExpr::Z(None)),
+        Box::new(LExpr::A(None)),
+        Box::new(LExpr::Nat(0)),
+    )));
+    // let expr1 = LExpr::A(Some(Box::new(LExpr::Nat(0))));
+    // let expr2 = LExpr::Z(Some((Box::new(expr1.clone()), Box::new(LExpr::Nat(2)))));
+    // let expr = LExpr::Z(Some((Box::new(LExpr::A(None)), Box::new(LExpr::Nat(0)))));
+    // let expr = LExpr::A(Some(Box::new(expr)));
+    // let mut expr = LExpr::Z(Some((Box::new(expr1), Box::new(expr2))));
+    println!("{:?}", expr2);
 }
 
 #[derive(Debug, Clone)]
@@ -38,7 +43,12 @@ impl LExpr {
                 Some((_u, v)) => *self = *v.clone(),
                 None => (),
             },
-            LExpr::S(_) => todo!(),
+            LExpr::S(expr) => match expr {
+                Some((u, v, w)) => {
+                    println!("u: {:?} v: {:?} w: {:?}", u, v, w);
+                }
+                None => (),
+            },
         }
     }
 }
