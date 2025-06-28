@@ -6,22 +6,25 @@ const S: char = 'S';
 
 fn main() {
     // TODO: MILESTONE 1 - Actually have this return 1.
-    // let tree = Node::new_symbol(
-    //     S,
-    //     vec![
-    //         Node::new_symbol(Z, vec![]),
-    //         Node::new_symbol(A, vec![]),
-    //         Node::new_nat(0),
-    //     ],
-    // );
+    let mut tree = Node::new_symbol(
+        S,
+        vec![
+            Node::new_symbol(Z, vec![]),
+            Node::new_symbol(A, vec![]),
+            Node::new_nat(0),
+        ],
+    );
+    println!("{:#?}", tree);
+    println!("Reducing once now");
+    tree.reduce_node();
+    println!("{:#?}", tree);
+    // let subtree0 = Node::new_symbol(A, vec![]);
+    // let subtree1 = Node::new_nat(0);
+    // let subtree = Node::new_symbol(Z, vec![subtree0, subtree1]);
+    // let mut tree = Node::new_symbol(A, vec![subtree]);
+    // tree.reduce_node();
+    // tree.reduce_node();
     // println!("{:#?}", tree)
-    let subtree0 = Node::new_symbol(A, vec![]);
-    let subtree1 = Node::new_nat(0);
-    let subtree = Node::new_symbol(Z, vec![subtree0, subtree1]);
-    let mut tree = Node::new_symbol(A, vec![subtree]);
-    tree.reduce_node();
-    tree.reduce_node();
-    println!("{:#?}", tree)
 }
 
 impl Node {
@@ -40,14 +43,22 @@ impl Node {
                 None => {} // Actually can't do anything. Already this node is as reduced as possible for now.
             },
             Node::NodeZ { children } => match children.iter().filter(|x| x.is_some()).count() {
-                1 => {} // I have no idea when this could happen. But even if it does, I don't think I can reduce it.
+                1 => {} // I don't know if this should be fixed here at all anyways. Maybe some other outer expression automatically takes cares of it.
                 2 => {
                     let [_u, v] = children;
                     *self = *v.clone().unwrap() //This should be fine since we only do this op if both are Some() due to the `count . filter` above.
                 }
                 _ => unsafe { unreachable_unchecked() },
             },
-            Node::NodeS { children } => todo!(),
+            Node::NodeS { children } => match children.iter().filter(|x| x.is_some()).count() {
+                1 => {}
+                2 => {}
+                3 => {
+                    let [u, v, w] = children;
+                    println!("u {:?} v{:?} w{:?}", u, v, w);
+                }
+                _ => unsafe { unreachable_unchecked() },
+            },
         }
     }
 }
