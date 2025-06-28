@@ -15,8 +15,10 @@ fn main() {
     //     ],
     // );
     // println!("{:#?}", tree)
-    let subtree1 = Node::new_symbol(A, vec![Node::new_nat(4)]);
-    let mut tree = Node::new_symbol(A, vec![subtree1]);
+    let subtree0 = Node::new_symbol(A, vec![]);
+    let subtree1 = Node::new_nat(0);
+    let subtree = Node::new_symbol(Z, vec![subtree0, subtree1]);
+    let mut tree = Node::new_symbol(A, vec![subtree]);
     tree.reduce_node();
     tree.reduce_node();
     println!("{:#?}", tree)
@@ -37,7 +39,14 @@ impl Node {
                 },
                 None => {} // Actually can't do anything. Already this node is as reduced as possible for now.
             },
-            Node::NodeZ { children } => todo!(),
+            Node::NodeZ { children } => match children.iter().filter(|x| x.is_some()).count() {
+                1 => {} // I have no idea when this could happen. But even if it does, I don't think I can reduce it.
+                2 => {
+                    let [_u, v] = children;
+                    *self = *v.clone().unwrap() //This should be fine since we only do this op if both are Some() due to the `count . filter` above.
+                }
+                _ => unsafe { unreachable_unchecked() },
+            },
             Node::NodeS { children } => todo!(),
         }
     }
