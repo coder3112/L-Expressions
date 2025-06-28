@@ -22,3 +22,76 @@ Example: The transformation of $S(Z)(A)(0)$ results in the number 1:\
 $S(Z)(A)(0) \rightarrow A(Z(A)(0)) \rightarrow A(0) \rightarrow 1$
 
 Note: For this exercise, Project Euler seems to recognize $0 \in \mathbb{N}$.
+
+### Solution Attempt 1
+
+The first solution I attempted made use of simple match expressions wherein I tried to reduce expressions by evaulating them according to the given transformations.
+Then, a lexpr could simply be considered either a natural number or a symbol/operator which recursively contained a lexpr inside.
+
+```rs
+enum LExpr {
+    Nat(Nat),
+    A(Box<LExpr>),
+    Z(Box<LExpr>, Box<LExpr>),
+    S(Box<LExpr>, Box<LExpr>, Box<LExpr>),
+}
+```
+
+Now, to reduce these expressions, we have:
+
+```rs
+impl LExpr {
+    fn reduce(&mut self) {
+        match self {
+            LExpr::Nat(non_zero) => Ok(()),
+            LExpr::A(expr) => match &**expr {
+                LExpr::Nat(nat) => {
+                    *self = LExpr::Nat(*nat + 1);
+                    Ok(())
+                }
+                _ => self.reduce(),
+            },
+            LExpr::Z(_lexpr1, lexpr2) => {
+                *self = *lexpr2.clone();
+                Ok(())
+            }
+            LExpr::S(lexpr1, lexpr2, lexpr3) => unimplemented!()
+    }
+}
+```
+
+However, this piece of code had several problems, not least of which was that it did not support `LExpr::S()` reductions at all, since I could not figure out how to create child expressions by parsing the structure. Furthermore, there was no way to represent something like `(A)` by itself, since it needed some `LExpr` inside it, which could not be empty. I decided to try and solve the latter problem first.
+
+### Solution Attempt 2
+
+Most of my code stayed the same, with the exception of adding `Option<>` to all `Box<LExpr>` types so that I may implement `(A)` and the like. Then, to reduce this, the function was modified as so:
+
+```rs
+pub fn reduce(&mut self) {
+    match self {
+        LExpr::Nat(_) => (),
+        LExpr::A(expr) => match expr {
+            None => (),
+            Some(expr) => match &**expr {
+                LExpr::Nat(n) => *self = LExpr::Nat(n + 1),
+                expr => {
+                    let mut expr = expr.clone();
+                    expr.reduce();
+                    *self = LExpr::A(Some(Box::new(expr)));
+                }
+            },
+        },
+        LExpr::Z(expr) => match expr {
+            Some((_u, v)) => *self = *v.clone(),
+            None => (),
+        },
+        LExpr::S(_) => todo!(),
+    }
+}
+```
+
+This actually did solve problems such as `Z(A)(0)` but still there was no way to modify `S(...)` since it involved having many child expressions move, and I needed to allow for it to have as many child nodes as deep as it wanted, which made hardcording anything unfeasible.
+
+### Solution Attempt 3
+
+At this point, the constant imagery of child nodes and recursion reminded me of two things: (a) S-Expressions and (b) Trees. Indeed, an S-Expression can be roughly thought of as a binary tree with some exceptions, and as lisp has famously taught us, one can parse them. So, I decided I would try and use trees to solve this problem. Or tries, I haven't yet decided. Nor do I know the difference.
