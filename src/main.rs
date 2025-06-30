@@ -5,7 +5,6 @@ const Z: char = 'Z';
 const S: char = 'S';
 
 fn main() {
-    // TODO: MILESTONE 1 - Actually have this return 1.
     let mut tree = Node::new_symbol(
         S,
         vec![
@@ -14,17 +13,10 @@ fn main() {
             Node::new_nat(0),
         ],
     );
-    println!("{:#?}", tree);
-    println!("Reducing once now");
+    tree.reduce_node();
+    tree.reduce_node();
     tree.reduce_node();
     println!("{:#?}", tree);
-    // let subtree0 = Node::new_symbol(A, vec![]);
-    // let subtree1 = Node::new_nat(0);
-    // let subtree = Node::new_symbol(Z, vec![subtree0, subtree1]);
-    // let mut tree = Node::new_symbol(A, vec![subtree]);
-    // tree.reduce_node();
-    // tree.reduce_node();
-    // println!("{:#?}", tree)
 }
 
 impl Node {
@@ -54,8 +46,34 @@ impl Node {
                 1 => {}
                 2 => {}
                 3 => {
-                    let [u, v, w] = children;
+                    let v_child = children
+                        .clone()
+                        .iter()
+                        .flatten()
+                        .map(|x| *x.clone())
+                        .collect::<Vec<Node>>();
+                    let u = &v_child[0];
+                    let v = &v_child[1];
+                    let w = &v_child[2];
                     println!("u {:?} v{:?} w{:?}", u, v, w);
+                    // let mut v_child = &children
+                    //     .iter()
+                    //     .flatten()
+                    //     .map(|x| *x.clone())
+                    //     .collect::<Vec<Node>>();
+                    let vw = [v, w];
+                    let mut i = 0;
+                    let mut nodes = vec![];
+                    for node in vw {
+                        if i < u.capacity() {
+                            nodes.push(node.clone());
+                            i += 1;
+                        } else {
+                            break;
+                        }
+                    }
+                    let v_child = Node::new_symbol(u.to_char(), nodes);
+                    *self = Node::new_symbol(v.to_char(), vec![v_child]);
                 }
                 _ => unsafe { unreachable_unchecked() },
             },
@@ -85,6 +103,28 @@ enum Node {
 }
 
 impl Node {
+    fn to_char(&self) -> char {
+        match self {
+            Node::Nat(_) => panic!("Numbers not supported like that"),
+            Node::NodeA { children: _ } => A,
+            Node::NodeZ { children: _ } => Z,
+            Node::NodeS { children: _ } => S,
+        }
+    }
+    fn to_int(&self) -> usize {
+        match self {
+            Node::Nat(_) => panic!("Numbers not supported like that"),
+            Node::NodeA { children: _ } => Symbol::A as usize,
+            Node::NodeZ { children: _ } => Symbol::Z as usize,
+            Node::NodeS { children: _ } => Symbol::S as usize,
+        }
+    }
+    fn capacity(&self) -> usize {
+        match self {
+            Node::Nat(_) => 0,
+            _ => self.to_int(),
+        }
+    }
     pub fn new_symbol(val: char, children: Vec<Node>) -> Self {
         match val {
             'A' => match children.len() {
