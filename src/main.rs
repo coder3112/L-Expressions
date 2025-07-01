@@ -8,13 +8,11 @@ fn main() {
     let mut tree = Node::new_symbol(
         S,
         vec![
-            Node::new_symbol(Z, vec![]),
-            Node::new_symbol(A, vec![]),
-            Node::new_nat(0),
+            Node::new_symbol(S, vec![]),
+            Node::new_symbol(S, vec![Node::new_symbol(S, vec![])]),
+            Node::new_symbol(S, vec![Node::new_symbol(Z, vec![])]),
         ],
     );
-    tree.reduce_node();
-    tree.reduce_node();
     tree.reduce_node();
     println!("{:#?}", tree);
 }
@@ -55,15 +53,40 @@ impl Node {
                     let u = &v_child[0];
                     let v = &v_child[1];
                     let w = &v_child[2];
-                    println!("u {:?} v{:?} w{:?}", u, v, w);
+                    // println!("u {:?} v{:?} w{:?}", u, v, w);
                     // let mut v_child = &children
                     //     .iter()
                     //     .flatten()
                     //     .map(|x| *x.clone())
                     //     .collect::<Vec<Node>>();
                     let vw = [v, w];
-                    let mut i = 0;
-                    let mut nodes = vec![];
+                    let (mut i, mut nodes) = match v {
+                        Node::Nat(_) => (0, vec![]),
+                        Node::NodeA { children } => (
+                            children.iter().filter(|x| x.is_some()).count(),
+                            children
+                                .iter()
+                                .flatten()
+                                .map(|x| *x.clone())
+                                .collect::<Vec<Node>>(),
+                        ),
+                        Node::NodeZ { children } => (
+                            children.iter().filter(|x| x.is_some()).count(),
+                            children
+                                .iter()
+                                .flatten()
+                                .map(|x| *x.clone())
+                                .collect::<Vec<Node>>(),
+                        ),
+                        Node::NodeS { children } => (
+                            children.iter().filter(|x| x.is_some()).count(),
+                            children
+                                .iter()
+                                .flatten()
+                                .map(|x| *x.clone())
+                                .collect::<Vec<Node>>(),
+                        ),
+                    };
                     for node in vw {
                         if i < u.capacity() {
                             nodes.push(node.clone());
@@ -193,5 +216,26 @@ impl Node {
     }
     pub fn new_nat(val: u64) -> Self {
         Node::Nat(val)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sza0() {
+        let mut tree = Node::new_symbol(
+            S,
+            vec![
+                Node::new_symbol(Z, vec![]),
+                Node::new_symbol(A, vec![]),
+                Node::new_nat(0),
+            ],
+        );
+        tree.reduce_node();
+        tree.reduce_node();
+        tree.reduce_node();
+        println!("{:#?}", tree)
     }
 }
