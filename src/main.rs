@@ -33,6 +33,7 @@ impl Node {
                 None => {} // Actually can't do anything. Already this node is as reduced as possible for now.
             },
             Node::NodeZ { children } => match children.iter().filter(|x| x.is_some()).count() {
+                0 => {}
                 1 => {} // I don't know if this should be fixed here at all anyways. Maybe some other outer expression automatically takes cares of it.
                 2 => {
                     let [_u, v] = children;
@@ -41,6 +42,7 @@ impl Node {
                 _ => unsafe { unreachable_unchecked() },
             },
             Node::NodeS { children } => match children.iter().filter(|x| x.is_some()).count() {
+                0 => {}
                 1 => {}
                 2 => {}
                 3 => {
@@ -95,8 +97,14 @@ impl Node {
                             break;
                         }
                     }
+                    let s_child: Vec<Node>;
                     let v_child = Node::new_symbol(u.to_char(), nodes);
-                    *self = Node::new_symbol(v.to_char(), vec![v_child]);
+                    if i < v.capacity() && i < 2 {
+                        s_child = vec![v_child, w.clone()];
+                    } else {
+                        s_child = vec![v_child];
+                    }
+                    *self = Node::new_symbol(v.to_char(), s_child);
                 }
                 _ => unsafe { unreachable_unchecked() },
             },
